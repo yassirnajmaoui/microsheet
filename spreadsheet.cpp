@@ -20,8 +20,9 @@ SpreadSheet::SpreadSheet(int rows, int cols, QWidget* parent)
 
     table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
     for (int c = 0; c < cols; ++c) {
-        QString character(QChar('A' + c));
+        QString character(QChar('0' + c));
         table->setHorizontalHeaderItem(c, new QTableWidgetItem(character));
+        table->setVerticalHeaderItem(c, new QTableWidgetItem(character));
     }
 
     table->setItemPrototype(table->item(rows - 1, cols - 1));
@@ -201,14 +202,22 @@ void SpreadSheet::setupContextMenu()
     setContextMenuPolicy(Qt::ActionsContextMenu);
 }
 
+int SpreadSheet::rowCount()
+{
+    return table->rowCount();
+}
+int SpreadSheet::columnCount()
+{
+    return table->columnCount();
+}
+
 void SpreadSheet::setupContents()
 {
-    //QBrush titleBackground(Qt::lightGray);
-    //QFont titleFont = table->font();
-    //titleFont.setBold(true);
-
-    table->setItem(5, 3, new SpreadSheetItem("some content here"));
-    //table->item(9, 5)->setBackground(Qt::lightGray);
+    for (int i = 0; i < rowCount(); ++i) {
+        for (int j = 0; j < columnCount(); ++j) {
+            table->setItem(i, j, new SpreadSheetItem());
+        }
+    }
 }
 
 void SpreadSheet::showAbout()

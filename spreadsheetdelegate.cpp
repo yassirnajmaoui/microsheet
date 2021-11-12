@@ -11,12 +11,6 @@ QWidget* SpreadSheetDelegate::createEditor(QWidget* parent,
     const QStyleOptionViewItem&,
     const QModelIndex& index) const
 {
-    if (index.column() == 1) {
-        QDateTimeEdit* editor = new QDateTimeEdit(parent);
-        editor->setDisplayFormat("yyyy-M-dd");
-        editor->setCalendarPopup(true);
-        return editor;
-    }
 
     QLineEdit* editor = new QLineEdit(parent);
 
@@ -52,12 +46,8 @@ void SpreadSheetDelegate::setEditorData(QWidget* editor,
     if (edit) {
         edit->setText(index.model()->data(index, Qt::EditRole).toString());
         return;
-    }
-
-    QDateTimeEdit* dateEditor = qobject_cast<QDateTimeEdit*>(editor);
-    if (dateEditor) {
-        dateEditor->setDate(QDate::fromString(
-            index.model()->data(index, Qt::EditRole).toString(), "yyyy-M-dd"));
+    } else {
+        throw std::runtime_error("The current cell's editor is of the wrong type...");
     }
 }
 
@@ -69,9 +59,7 @@ void SpreadSheetDelegate::setModelData(QWidget* editor,
     if (edit) {
         model->setData(index, edit->text());
         return;
+    } else {
+        throw std::runtime_error("The current cell's editor is of the wrong type...");
     }
-
-    QDateTimeEdit* dateEditor = qobject_cast<QDateTimeEdit*>(editor);
-    if (dateEditor)
-        model->setData(index, dateEditor->date().toString("yyyy-M-dd"));
 }

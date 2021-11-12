@@ -1,4 +1,5 @@
 #include "spreadsheetitem.hpp"
+#include <iostream>
 
 QTableWidgetItem* SpreadSheetItem::clone() const
 {
@@ -12,6 +13,8 @@ QVariant SpreadSheetItem::data(int role) const
     if (role == Qt::EditRole || role == Qt::StatusTipRole)
         return formula();
 
+    // Need to think of a way to make this not happen as often as it does... maybe through the other one?
+    // Have a way to find out if it's necessary to computeFDormula? like a cache?
     if (role == Qt::DisplayRole)
         return display();
 
@@ -58,5 +61,6 @@ QVariant SpreadSheetItem::computeFormula(const QString& formula,
 {
     // check if the string is actually a formula or not
     // Something here...
+    std::cout << "Doing here" << std::endl;
     return formula;
 }

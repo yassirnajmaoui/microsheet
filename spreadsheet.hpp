@@ -40,6 +40,9 @@ protected:
         const QString& outText, QString* cell1, QString* cell2,
         QString* outCell);
 
+    int rowCount();
+    int columnCount();
+
 private:
     QToolBar* toolBar;
     QAction* colorAction;
