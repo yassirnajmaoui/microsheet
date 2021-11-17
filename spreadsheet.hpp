@@ -1,7 +1,10 @@
-#ifndef SPREADSHEET_H
-#define SPREADSHEET_H
+#pragma once
 
+#include "console/QConsoleWidget.h"
 #include <QMainWindow>
+
+#define CONSOLE_PROMPT ">>> "
+
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -16,6 +19,7 @@ class SpreadSheet : public QMainWindow {
     Q_OBJECT
 public:
     SpreadSheet(int rows, int cols, QWidget* parent = nullptr);
+	~SpreadSheet();
 
 public slots:
     void updateStatus(QTableWidgetItem* item);
@@ -26,6 +30,7 @@ public slots:
     void selectFont();
     void clear();
     void showAbout();
+	void evalCommand(const QString& cmd);
 
 protected:
     void setupContextMenu();
@@ -56,6 +61,5 @@ private:
     QLabel* cellLabel;
     QTableWidget* table;
     QLineEdit* formulaInput;
+	QConsoleWidget* console;
 };
-
-#endif // SPREADSHEET_H

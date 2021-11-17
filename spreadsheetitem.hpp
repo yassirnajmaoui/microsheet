@@ -1,5 +1,4 @@
-#ifndef SPREADSHEETITEM_H
-#define SPREADSHEETITEM_H
+#pragma once
 
 #include "spreadsheet.hpp"
 
@@ -13,21 +12,26 @@ public:
     QTableWidgetItem *clone() const override;
 
     QVariant data(int role) const override;
-    void setData(int role, const QVariant &value) override;
-    QVariant display() const;
+    void setData(int role, const QVariant& value) override;
 
-    inline QString formula() const
+    inline QVariant getRepr() const
+	{ 
+		return repr;
+	}
+	inline QString getSource() const
     {
-        return QTableWidgetItem::data(Qt::DisplayRole).toString();
+        return source;
     }
-
-    static QVariant computeFormula(const QString &formula,
-                                   const QTableWidget *widget,
-                                   const QTableWidgetItem *self = nullptr);
+	inline void setRepr(QString p_repr)
+	{
+		repr = p_repr;
+	}
+	inline void setSource(QString p_source)
+	{
+		source = p_source;
+	}
 
 private:
-    mutable bool isResolving = false;
+    QString repr;
+    QString source;
 };
-
-#endif // SPREADSHEETITEM_H
-

@@ -8,9 +8,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(pybind11 REQUIRED)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui REQUIRED)
@@ -21,7 +22,10 @@ set(PROJECT_SOURCES
     spreadsheet.cpp spreadsheet.hpp
     spreadsheetdelegate.cpp spreadsheetdelegate.hpp
     spreadsheetitem.cpp spreadsheetitem.hpp
+    console/QConsoleIODevice.cpp console/QConsoleIODevice.h console/QConsoleWidget.cpp console/QConsoleWidget.h
+    util.hpp
 )
+
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 	qt_add_executable(microsheet MANUAL_FINALIZATION ${PROJECT_SOURCES})
@@ -34,6 +38,7 @@ else()
 endif()
 
 target_link_libraries(microsheet PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(microsheet PRIVATE pybind11::embed)
 
 set_target_properties(microsheet PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER microsheet.com
@@ -44,4 +49,7 @@ set_target_properties(microsheet PROPERTIES
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(microsheet)
 endif()
+
+
+
 

@@ -1,8 +1,16 @@
+#include <pybind11/embed.h>
+#include <pybind11/eval.h>
+#include <pybind11/pybind11.h>
+
 #include "spreadsheet.hpp"
 #include "spreadsheetdelegate.hpp"
 #include "spreadsheetitem.hpp"
+#include "util.hpp"
 
 #include <QtWidgets>
+#include <iostream>
+
+namespace py = pybind11;
 
 SpreadSheet::SpreadSheet(int rows, int cols, QWidget* parent)
     : QMainWindow(parent)
@@ -10,7 +18,9 @@ SpreadSheet::SpreadSheet(int rows, int cols, QWidget* parent)
     , cellLabel(new QLabel(toolBar))
     , table(new QTableWidget(rows, cols, this))
     , formulaInput(new QLineEdit(this))
+    , console(new QConsoleWidget())
 {
+    py::initialize_interpreter();
     addToolBar(toolBar);
 
     cellLabel->setMinimumSize(80, 0);
@@ -35,15 +45,30 @@ SpreadSheet::SpreadSheet(int rows, int cols, QWidget* parent)
     setupContextMenu();
     setCentralWidget(table);
 
+    // console
+    console->writeStdOut(CONSOLE_PROMPT);
+    console->setMode(QConsoleWidget::Input);
+    console->device()->close(); //force manual usage
+    QObject::connect(console, SIGNAL(consoleCommand(const QString&)), this, SLOT(evalCommand(const QString&)));
+    QDockWidget* dockWidget = new QDockWidget(tr("Console"), this);
+    dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+    dockWidget->setWidget(console);
+    addDockWidget(Qt::BottomDockWidgetArea, dockWidget);
+
     statusBar();
     connect(table, &QTableWidget::currentItemChanged, this, &SpreadSheet::updateStatus);
     connect(table, &QTableWidget::currentItemChanged, this, &SpreadSheet::updateColor);
     connect(table, &QTableWidget::currentItemChanged, this, &SpreadSheet::updateLineEdit);
     connect(table, &QTableWidget::itemChanged, this, &SpreadSheet::updateStatus);
-    connect(formulaInput, &QLineEdit::returnPressed, this, &SpreadSheet::returnPressed);
+    //connect(formulaInput, &QLineEdit::returnPressed, this, &SpreadSheet::returnPressed);
     connect(table, &QTableWidget::itemChanged, this, &SpreadSheet::updateLineEdit);
 
     setWindowTitle(tr("Spreadsheet"));
+}
+
+SpreadSheet::~SpreadSheet()
+{
+    py::finalize_interpreter();
 }
 
 void SpreadSheet::createActions()
@@ -226,4 +251,37 @@ void SpreadSheet::showAbout()
                            "Some html text here... I can even put words in <b>bold</b>"
                            "</HTML>";
     QMessageBox::about(this, "About Spreadsheet", htmlText);
+}
+
+void SpreadSheet::evalCommand(const QString& cmd)
+{
+    bool isErr = true;
+    py::object out;
+
+    const std::string cmd_str = cmd.toStdString();
+    const bool isSingleStatement = util::contains(cmd_str, std::string("=")) != cmd_str.end();
+
+    try {
+        if (isSingleStatement)
+            out = py::eval<py::eval_single_statement>(cmd_str);
+        else
+            out = py::eval<py::eval_expr>(cmd_str);
+        isErr = false;
+    } catch (const py::error_already_set& pe) {
+        console->writeStdErr(QString("Python error: ") + pe.what() + "\n");
+    } catch (const std::runtime_error& re) {
+        console->writeStdErr(QString("Runtime error: ") + re.what() + "\n");
+    } catch (const std::exception& ex) {
+        console->writeStdErr(QString("Error: ") + ex.what() + "\n");
+    } catch (...) {
+        console->writeStdErr(QString("Unknown failure occurred.Possible memory corruption") + "\n");
+    }
+
+    if (!isErr) {
+        std::string out_str = static_cast<std::string>(py::str(out));
+        if (out_str != "None")
+            console->writeStdOut(QString(out_str.c_str()) + "\n");
+    }
+    console->writeStdOut(CONSOLE_PROMPT);
+    console->setMode(QConsoleWidget::Input);
 }
