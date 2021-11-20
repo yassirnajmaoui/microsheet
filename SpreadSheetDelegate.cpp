@@ -1,4 +1,4 @@
-#include "spreadsheetdelegate.hpp"
+#include "SpreadSheetDelegate.hpp"
 
 #include <QtWidgets>
 

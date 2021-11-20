@@ -1,15 +1,14 @@
 #ifndef _QCONSOLEWIDGET_H_
 #define _QCONSOLEWIDGET_H_
 
+#include <QCompleter>
 #include <QPlainTextEdit>
 #include <QTextStream>
-#include <QCompleter>
 
 class QConsoleIODevice;
 class QConsoleWidgetCompleter;
 
-class QConsoleWidget : public QPlainTextEdit
-{
+class QConsoleWidget : public QPlainTextEdit {
     Q_OBJECT
 
 public:
@@ -34,19 +33,31 @@ public:
     void setMode(ConsoleMode m);
     QIODevice* device() const { return (QIODevice*)iodevice_; }
     QTextCharFormat channelCharFormat(ConsoleChannel ch) const
-    { return chanFormat_[ch]; }
+    {
+        return chanFormat_[ch];
+    }
     void setChannelCharFormat(ConsoleChannel ch, const QTextCharFormat& fmt)
-    { chanFormat_[ch] = fmt; }
+    {
+        chanFormat_[ch] = fmt;
+    }
     const QStringList& completionTriggers() const
-    { return completion_triggers_; }
+    {
+        return completion_triggers_;
+    }
     void setCompletionTriggers(const QStringList& l)
-    { completion_triggers_ = l; }
-    virtual QSize	sizeHint() const
-    { return QSize(600,400); }
+    {
+        completion_triggers_ = l;
+    }
+    virtual QSize sizeHint() const
+    {
+        return QSize(600, 400);
+    }
     // write a formatted message to the console
-    void write(const QString & message, const QTextCharFormat& fmt);
+    void write(const QString& message, const QTextCharFormat& fmt);
     static const QStringList& history()
-    { return history_.strings_; }
+    {
+        return history_.strings_;
+    }
     void setCompleter(QConsoleWidgetCompleter* c);
     // get the current command line
     QString getCommandLine();
@@ -66,17 +77,18 @@ signals:
     void abortEvaluation();
 
 protected:
-
     bool canPaste() const;
     bool canCut() const
-    { return isSelectionInEditZone(); }
+    {
+        return isSelectionInEditZone();
+    }
     void handleReturnKey();
     void handleTabKey();
     void updateCompleter();
     void checkCompletionTriggers(const QString& txt);
     // reimp QPlainTextEdit functions
-    void keyPressEvent (QKeyEvent * e) override;
-    void contextMenuEvent(QContextMenuEvent *event) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* event) override;
     // Returns true if there is a selection in edit zone
     bool isSelectionInEditZone() const;
     // Returns true if cursor is in edit zone
@@ -90,9 +102,7 @@ protected slots:
     void insertCompletion(const QString& completion);
 
 private:
-
-    struct History
-    {
+    struct History {
         QStringList strings_;
         int pos_;
         QString token_;
@@ -102,7 +112,9 @@ private:
         ~History(void);
         void add(const QString& str);
         const QString& currentValue() const
-        { return pos_ == -1 ? token_ : strings_.at(pos_); }
+        {
+            return pos_ == -1 ? token_ : strings_.at(pos_);
+        }
         void activate(const QString& tk = QString());
         void deactivate() { active_ = false; }
         bool isActive() const { return active_; }
@@ -120,13 +132,12 @@ private:
     QConsoleWidgetCompleter* completer_;
 };
 
-QTextStream &waitForInput(QTextStream &s);
-QTextStream &inputMode(QTextStream &s);
-QTextStream &outChannel(QTextStream &s);
-QTextStream &errChannel(QTextStream &s);
+QTextStream& waitForInput(QTextStream& s);
+QTextStream& inputMode(QTextStream& s);
+QTextStream& outChannel(QTextStream& s);
+QTextStream& errChannel(QTextStream& s);
 
-class QConsoleWidgetCompleter : public QCompleter
-{
+class QConsoleWidgetCompleter : public QCompleter {
 public:
     /*
      * Update the completion model given a string.  The given string
@@ -143,7 +154,5 @@ public:
      */
     virtual int insertPos() = 0;
 };
-
-
 
 #endif

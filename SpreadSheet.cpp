@@ -1,16 +1,13 @@
-#include <pybind11/embed.h>
-#include <pybind11/eval.h>
-#include <pybind11/pybind11.h>
+#define PY_SSIZE_T_CLEAN
+#include "Python.h"
 
-#include "spreadsheet.hpp"
-#include "spreadsheetdelegate.hpp"
-#include "spreadsheetitem.hpp"
+#include "SpreadSheet.hpp"
+#include "SpreadSheetDelegate.hpp"
+#include "SpreadSheetItem.hpp"
 #include "util.hpp"
 
 #include <QtWidgets>
 #include <iostream>
-
-namespace py = pybind11;
 
 SpreadSheet::SpreadSheet(int rows, int cols, QWidget* parent)
     : QMainWindow(parent)
@@ -20,7 +17,6 @@ SpreadSheet::SpreadSheet(int rows, int cols, QWidget* parent)
     , formulaInput(new QLineEdit(this))
     , console(new QConsoleWidget())
 {
-    py::initialize_interpreter();
     addToolBar(toolBar);
 
     cellLabel->setMinimumSize(80, 0);
@@ -68,7 +64,6 @@ SpreadSheet::SpreadSheet(int rows, int cols, QWidget* parent)
 
 SpreadSheet::~SpreadSheet()
 {
-    py::finalize_interpreter();
 }
 
 void SpreadSheet::createActions()
@@ -255,20 +250,14 @@ void SpreadSheet::showAbout()
 
 void SpreadSheet::evalCommand(const QString& cmd)
 {
+
     bool isErr = true;
-    py::object out;
 
     const std::string cmd_str = cmd.toStdString();
-    const bool isSingleStatement = util::contains(cmd_str, std::string("=")) != cmd_str.end();
 
     try {
-        if (isSingleStatement)
-            out = py::eval<py::eval_single_statement>(cmd_str);
-        else
-            out = py::eval<py::eval_expr>(cmd_str);
+        PyRun_SimpleString(cmd_str.c_str());
         isErr = false;
-    } catch (const py::error_already_set& pe) {
-        console->writeStdErr(QString("Python error: ") + pe.what() + "\n");
     } catch (const std::runtime_error& re) {
         console->writeStdErr(QString("Runtime error: ") + re.what() + "\n");
     } catch (const std::exception& ex) {
@@ -278,9 +267,9 @@ void SpreadSheet::evalCommand(const QString& cmd)
     }
 
     if (!isErr) {
-        std::string out_str = static_cast<std::string>(py::str(out));
-        if (out_str != "None")
-            console->writeStdOut(QString(out_str.c_str()) + "\n");
+        //std::string out_str = static_cast<std::string>(py::str(out));
+        //if (out_str != "None")
+        //    console->writeStdOut(QString(out_str.c_str()) + "\n");
     }
     console->writeStdOut(CONSOLE_PROMPT);
     console->setMode(QConsoleWidget::Input);

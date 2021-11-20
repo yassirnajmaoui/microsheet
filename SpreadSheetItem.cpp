@@ -1,4 +1,4 @@
-#include "spreadsheetitem.hpp"
+#include "SpreadSheetItem.hpp"
 #include <iostream>
 
 QTableWidgetItem* SpreadSheetItem::clone() const
@@ -32,7 +32,7 @@ QVariant SpreadSheetItem::data(int role) const
         if (!t.isEmpty() && (t.at(0).isNumber() || t.at(0) == '-'))
             return int(Qt::AlignRight | Qt::AlignVCenter);
 
-    return QTableWidgetItem::data(role);// All of the other roles
+    return QTableWidgetItem::data(role); // All of the other roles
 }
 
 void SpreadSheetItem::setData(int role, const QVariant& value)

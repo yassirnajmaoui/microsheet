@@ -1,6 +1,4 @@
-#ifndef SPREADSHEETDELEGATE_H
-#define SPREADSHEETDELEGATE_H
-
+#pragma once
 #include <QStyledItemDelegate>
 
 class SpreadSheetDelegate : public QStyledItemDelegate {
@@ -17,5 +15,3 @@ public:
 private slots:
     void commitAndCloseEditor();
 };
-
-#endif // SPREADSHEETDELEGATE_H

@@ -5,7 +5,6 @@
 
 #define CONSOLE_PROMPT ">>> "
 
-
 QT_BEGIN_NAMESPACE
 class QAction;
 class QLabel;
@@ -19,7 +18,7 @@ class SpreadSheet : public QMainWindow {
     Q_OBJECT
 public:
     SpreadSheet(int rows, int cols, QWidget* parent = nullptr);
-	~SpreadSheet();
+    ~SpreadSheet();
 
 public slots:
     void updateStatus(QTableWidgetItem* item);
@@ -30,7 +29,7 @@ public slots:
     void selectFont();
     void clear();
     void showAbout();
-	void evalCommand(const QString& cmd);
+    void evalCommand(const QString& cmd);
 
 protected:
     void setupContextMenu();
@@ -61,5 +60,5 @@ private:
     QLabel* cellLabel;
     QTableWidget* table;
     QLineEdit* formulaInput;
-	QConsoleWidget* console;
+    QConsoleWidget* console;
 };
