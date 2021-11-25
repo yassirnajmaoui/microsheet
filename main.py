@@ -1,6 +1,5 @@
 #!/bin/env python
 import sys
-#import gc
 from PyQt5.QtCore import(
 	Qt,
 	QModelIndex,
@@ -9,7 +8,8 @@ from PyQt5.QtCore import(
 )
 from PyQt5.QtGui import (
 	QStandardItemModel,
-	QColor
+	QColor,
+	QFont
 )
 from PyQt5.QtWidgets import (
 	QApplication,
@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
 		self.ci=0
 		self.cj=0
 		self.running = False
+		self.changingSource = False
 
 		# Window geometry
 		self.setGeometry(100, 100, 1024, 640)
@@ -115,7 +116,6 @@ class MainWindow(QMainWindow):
 		self.setCentralWidget(self.centralWidget)
 	
 	def onSelectionChanged(self):
-		# TODO: There should be a way to press Escape and return back to where we were
 		self.ci = self.tableWidget.currentRow()
 		self.cj = self.tableWidget.currentColumn()
 		if len(self.tableWidget.selectedItems()) > 1:
@@ -128,12 +128,21 @@ class MainWindow(QMainWindow):
 				self.formulaEdit.setText(rcsv.s[self.ci,self.cj])
 	
 	def onItemChanged(self,item):
-		if not self.running:
-			rcsv.s[item.row(), item.column()] = item.text()
+		if not self.running and not self.changingSource:
+			current_i = item.row()
+			current_j = item.column()
+			rcsv.s[current_i, current_j] = item.text() # Changes the data
+			self.formulaEdit.setText(item.text())
+			self.changingSource = True
+			self.setItemSource(current_i,current_j)
+			self.changingSource = False
 
 	def onFormulaChange(self):
 		capturedText = self.formulaEdit.text()
-		rcsv.s[self.ci,self.cj] = capturedText
+		rcsv.s[self.ci,self.cj] = capturedText # Changes the data
+		self.changingSource = True
+		self.setItemSource(self.ci,self.cj)
+		self.changingSource = False
 	
 	def down(self):
 		if(self.ci!=rcsv.s.shape[0]-1):
@@ -164,15 +173,26 @@ class MainWindow(QMainWindow):
 	def affectCell(self,i,j):
 		try:
 			rcsv.process_cell(i,j)
-			newitem = QTableWidgetItem(rcsv.f[i,j])
-			self.tableWidget.setItem(i,j, newitem)
-			if(rcsv.s[i,j] != "" and rcsv.s[i,j][0] == "="):
-				self.tableWidget.item(i,j).setBackground(QColor(100,200,100))
-			# Remove the mark that said that it wasn't updated
+			self.setItemObject(i,j)
 		except Exception as e:
 			print("There was an error in cell {"+str(i)+","+str(j)+"}:")
 			print(e)
 			print("------End of error message------")
+
+	def setItemSource(self,row,col):# The object's source is already in the 's' array
+		newitem = QTableWidgetItem(rcsv.s[row,col])
+		objFont = QFont()
+		objFont.setItalic(True)
+		newitem.setFont(objFont)
+		self.tableWidget.setItem(row,col, newitem)
+	
+	def setItemObject(self,row,col): # The object's repr is already in the 'f' array
+		newitem = QTableWidgetItem(rcsv.f[row,col])
+		if(rcsv.s[row,col] != "" and rcsv.s[row,col][0] == "="):
+			objFont = QFont()
+			objFont.setBold(True)
+			newitem.setFont(objFont)
+		self.tableWidget.setItem(row,col, newitem)
 
 	def keyPressEvent(self, event):
 		key = event.key()
@@ -180,8 +200,8 @@ class MainWindow(QMainWindow):
 			for modelIndex in self.tableWidget.selectedIndexes():
 				row = modelIndex.row()
 				column = modelIndex.column()
-				rcsv.s[row,column] = "" # Everytime there's a change in "s", we need to make it evident in the speadsheet background
-				# Put the cell in a certain color to signify that it wasn't updated
+				rcsv.s[row,column] = ""
+				self.setItemSource(row,column)
 		QWidget.keyPressEvent(self,event)
 
 	def copyRange(self):
@@ -221,7 +241,7 @@ class MainWindow(QMainWindow):
 						rcsv.s[current_i,current_j] = "="+rcsv.s[current_i,current_j]
 					else:
 						rcsv.s[current_i,current_j] = rcsv.s[current_i,current_j][1:]
-					# Make it evident that the cell was not updated
+					self.setItemSource(current_i,current_j)
 
 	def saveFile(self):
 		fileDialog = QFileDialog()
