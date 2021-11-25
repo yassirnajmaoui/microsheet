@@ -49,6 +49,7 @@ class MainWindow(QMainWindow):
 		self.setWindowTitle("A Python-powered spreadsheet")
 		self.ci=0
 		self.cj=0
+		self.running = False
 
 		# Window geometry
 		self.setGeometry(100, 100, 1024, 640)
@@ -94,7 +95,8 @@ class MainWindow(QMainWindow):
 		self.tableWidget.setColumnCount(rcsv.s.shape[1])
 		self.tableWidget.setHorizontalHeaderLabels([str(i) for i in range(rcsv.s.shape[0])])
 		self.tableWidget.setVerticalHeaderLabels([str(i) for i in range(rcsv.s.shape[1])])
-		self.tableWidget.itemSelectionChanged.connect(self.onCellChanged)
+		self.tableWidget.itemSelectionChanged.connect(self.onSelectionChanged)
+		self.tableWidget.itemChanged.connect(lambda item: self.onItemChanged(item))
 
 		# Run button
 		self.runBtn = QPushButton("Run")
@@ -112,18 +114,23 @@ class MainWindow(QMainWindow):
 		self.centralWidget.setLayout(layout)
 		self.setCentralWidget(self.centralWidget)
 	
-	def onCellChanged(self):
+	def onSelectionChanged(self):
 		# TODO: There should be a way to press Escape and return back to where we were
 		self.ci = self.tableWidget.currentRow()
 		self.cj = self.tableWidget.currentColumn()
 		if len(self.tableWidget.selectedItems()) > 1:
 			self.formulaEdit.clearFocus()
 		else:
+			self.formulaEdit.setFocus()
 			if(rcsv.s[self.ci,self.cj]=="" or len(rcsv.s[self.ci,self.cj])==0):
 				self.formulaEdit.setText("")
 			else:
 				self.formulaEdit.setText(rcsv.s[self.ci,self.cj])
-			
+	
+	def onItemChanged(self,item):
+		if not self.running:
+			rcsv.s[item.row(), item.column()] = item.text()
+
 	def onFormulaChange(self):
 		capturedText = self.formulaEdit.text()
 		rcsv.s[self.ci,self.cj] = capturedText
@@ -148,9 +155,11 @@ class MainWindow(QMainWindow):
 		self.down()
 	
 	def runSheet(self):
+		self.running = True
 		for j in np.arange(rcsv.s.shape[1]):
 			for i in np.arange(rcsv.s.shape[0]):
 				self.affectCell(i,j)
+		self.running = False
 	
 	def affectCell(self,i,j):
 		try:
@@ -292,5 +301,5 @@ if __name__ == "__main__":
 	app = QApplication(sys.argv)
 	window = MainWindow()
 	window.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
 
